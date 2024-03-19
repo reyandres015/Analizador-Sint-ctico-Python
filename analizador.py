@@ -1,97 +1,54 @@
 # Definir los tokens y palabras reservadas
 tokens = {
-
     'tkn_ejecuta': '->',
-
     'tkn_potencia': '**',
-
     'tkn_mayor_igual': '>=',
-
     'tkn_menor_igual': '<=',
-
     'tkn_igual': '==',
-
     'tkn_distinto': '!=',
-
     'tkn_and': 'and',
-
     'tkn_or': 'or',
-
     'tkn_not': 'not',
-
     'tkn_mas_asig': '+=',
-
     'tkn_menos_asig': '-=',
-
     'tkn_mult_asig': '*=',
-
     'tkn_div_asig': '/=',
-    
-    'tkn_div_entera' : '//',
-
+    'tkn_div_entera': '//',
     'tkn_mod_asig': '%=',
-
     'tkn_menor_menor': '<<',
-
     'tkn_mayor_mayor': '>>',
-
+    'tkn_punto_y_coma': ';',
     'tkn_coma': ',',
-
     'tkn_par_izq': '(',
-
     'tkn_par_der': ')',
-
     'tkn_corchete_izq': '[',
-
     'tkn_corchete_der': ']',
-
     'tkn_llave_izq': '{',
-
     'tkn_llave_der': '}',
-
     'tkn_dos_puntos': ':',
-
     'tkn_punto': '.',
-
     'tkn_asig': '=',
-
     'tkn_div': '/',
-
     'tkn_suma': '+',
-
     'tkn_resta': '-',
-
     'tkn_mult': '*',
-
     'tkn_modulo': '%',
-
     'tkn_mayor': '>',
-
     'tkn_menor': '<',
-
     'tkn_arroba': '@',
-
     'tkn_comentario': '#',
-
     'tkn_ampersand': '&',
-
     'tkn_interrogacion': '?',
-
     'tkn_tilde': '~',
-    
-    'tkn_barra_piso': '_'
-
+    'tkn_barra_piso': '_',
+    'tkn_exclamacion': '!'
 }
+
 # Palabras reservadas en minúsculas
-
 palabras_reservadas = {
-
-    'range','object', 'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
-
+    'range', 'object', 'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
     'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global',
-
     'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'print', 'raise', 'return',
-
     'try', 'self', 'while', 'with', 'yield', '_init_'
 }
 
@@ -103,6 +60,9 @@ tipos_datos = {
     'bool': 'bool'
 }
 
+# Contador de filas
+fila = 1
+
 def es_identificador(cadena):
     if not cadena:
         return False  # La cadena no puede estar vacía
@@ -113,7 +73,6 @@ def es_identificador(cadena):
             return False  # Los caracteres permitidos son letras, números y guiones bajos
     return True
 
-
 def analizar_lexico(codigo):
     fila = 0
     columna = 0
@@ -121,22 +80,23 @@ def analizar_lexico(codigo):
     comentario = False
     dentro_cadena = False
     ultima_columna = 0
-    
+
     lineas = codigo.split('\n')
 
-    for linea in lineas: # recorrer lineas
+    for linea in lineas:
         fila += 1
         columna = 0
         comentario = False
+        palabra = ''
 
-        while columna < len(linea): #recorrer columnas
+        while columna < len(linea):
             char = linea[columna]
             if char == '\t':
                 columna += 4
             else:
                 columna += 1
 
-            if comentario: # Estado (comentario) 
+            if comentario:  # Estado (comentario)
                 continue
 
             if dentro_cadena:
@@ -152,33 +112,36 @@ def analizar_lexico(codigo):
             if char == '#':
                 comentario = True
                 continue
-            
-            # if palabra[:-1].isalnum() and palabra[-1].isalpha():
-            #     print(f"<numero_entero, {palabra[:-1]}, {fila}, {columna - len(palabra)}>")
-            #     palabra = palabra[-1]
-                
+
+            # Verificar si el carácter es un símbolo definido
+            if char not in tokens.values() and char not in palabras_reservadas and not char.isalnum() and char != '_' and char!=' ' and char!='"':
+                print(f">>>Error léxico: Símbolo no definido '{char}' en la fila {fila}, columna {columna}")
+                return
+                continue
+
             if char.isdigit():
                 inicio_numero = columna - 1
                 while columna < len(linea) and (linea[columna].isdigit()):
                     columna += 1
                 print(f"<tk_entero, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
+                palabra = ''
                 continue
-            
+
             if es_identificador(char):
                 inicio_numero = columna - 1
                 while columna < len(linea) and (es_identificador(linea[columna])):
                     columna += 1
-                
                 if linea[inicio_numero:columna] in palabras_reservadas:
-                        print(f"<{linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
+                    print(f"<{linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
 
                 elif linea[inicio_numero:columna] in tipos_datos:
                     print(
                         f"<tipo_dato, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
                 else:
                     print(f"<id, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
+                palabra = ''
                 continue
-            
+
             if char.isspace() or char in tokens.values():
                 if palabra:
                     if palabra in palabras_reservadas:
@@ -197,8 +160,8 @@ def analizar_lexico(codigo):
                             print(f"<numero_entero, {palabra}, {fila}, {columna - len(palabra)}>")
                         except ValueError:
                             print(
-                                f">>>Error lexico(Fila:{fila},Columna:{columna - len(palabra)})")
-                            # return
+                                f">>>Error léxico(Fila:{fila},Columna:{columna - len(palabra)})")
+                            return
                     palabra = ''
                 if char in tokens.values():
                     for token, value in tokens.items():
@@ -224,9 +187,16 @@ def analizar_lexico(codigo):
             elif palabra in tipos_datos:
                 print(f"<tipo_dato, {palabra}, {fila}, {ultima_columna}>")
 
+            elif es_identificador(palabra):
+                print(f"<id, {palabra}, {fila}, {columna - len(palabra)}>")
             else:
-                print(f"<id, {palabra}, {fila}, {ultima_columna}>")
-
+                try:
+                    # Intentamos convertir la palabra en un número entero
+                    numero_entero = int(palabra)
+                    print(f"<numero_entero, {palabra}, {fila}, {columna - len(palabra)}>")
+                except ValueError:
+                    print(f">>>Error léxico(Fila:{fila},Columna:{columna - len(palabra)})")
+                    return
 
 # Cargar el código desde un archivo
 with open('codigo.py', 'r', encoding='utf-8') as file:
