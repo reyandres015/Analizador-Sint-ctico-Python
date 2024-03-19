@@ -1,7 +1,7 @@
 # Definir los tokens y palabras reservadas
 tokens = {
 
-    'tkn_arrow': '->',
+    'tkn_ejecuta': '->',
 
     'tkn_potencia': '**',
 
@@ -129,13 +129,12 @@ def analizar_lexico(codigo):
         columna = 0
         comentario = False
 
-        for char in linea:
+        while columna < len(linea):
+            char = linea[columna]
             if char == '\t':
                 columna += 4
             else:
                 columna += 1
-
-            # print(char, " ", fila,",",columna)
 
             if comentario:
                 continue
@@ -167,10 +166,11 @@ def analizar_lexico(codigo):
 
                 if char in tokens.values():
                     for token, value in tokens.items():
-                        if value == palabra + char:
-                            print(f"<{token}, {fila}, {columna}>")
+                        if columna >= len(value) and linea[columna-len(value):columna] == value:
+                            print(f"<{token}, {fila}, {columna-len(value)+1}>")
                             palabra = ''
                             break
+
 
             elif char == '"':
                 palabra += char
@@ -198,4 +198,3 @@ with open('codigo.py', 'r', encoding='utf-8') as file:
 
 # Realizar el análisis léxico
 analizar_lexico(input_text)
-
