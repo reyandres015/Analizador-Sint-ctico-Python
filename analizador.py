@@ -35,8 +35,6 @@ tokens = {
 
     'tkn_mayor_mayor': '>>',
 
-    'tkn_punto_y_coma': ';',
-
     'tkn_coma': ',',
 
     'tkn_par_izq': '(',
@@ -81,11 +79,7 @@ tokens = {
 
     'tkn_tilde': '~',
     
-    'tkn_barra_piso': '_',
-    
-    'numeros' : '0123456789',
-    
-    'tkn_exclamacion':'!'
+    'tkn_barra_piso': '_'
 
 }
 # Palabras reservadas en minúsculas
@@ -109,10 +103,6 @@ tipos_datos = {
     'bool': 'bool'
 }
 
-# Contador de filas
-fila = 1
-
-
 def es_identificador(cadena):
     if not cadena:
         return False  # La cadena no puede estar vacía
@@ -134,19 +124,19 @@ def analizar_lexico(codigo):
     
     lineas = codigo.split('\n')
 
-    for linea in lineas:
+    for linea in lineas: # recorrer lineas
         fila += 1
         columna = 0
         comentario = False
 
-        while columna < len(linea):
+        while columna < len(linea): #recorrer columnas
             char = linea[columna]
             if char == '\t':
                 columna += 4
             else:
                 columna += 1
 
-            if comentario: # Estado (comentario)
+            if comentario: # Estado (comentario) 
                 continue
 
             if dentro_cadena:
@@ -178,12 +168,13 @@ def analizar_lexico(codigo):
                 inicio_numero = columna - 1
                 while columna < len(linea) and (es_identificador(linea[columna])):
                     columna += 1
+                
                 if linea[inicio_numero:columna] in palabras_reservadas:
-                        print(f"<{linea[inicio_numero:columna]}, {fila}, {columna - len(palabra)}>")
+                        print(f"<{linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
 
                 elif linea[inicio_numero:columna] in tipos_datos:
                     print(
-                        f"<tipo_dato, {linea[inicio_numero:columna]}, {fila}, {columna - len(palabra)}>")
+                        f"<tipo_dato, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
                 else:
                     print(f"<id, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
                 continue
