@@ -83,14 +83,16 @@ tokens = {
 
     'tkn_interrogacion': '?',
 
-    'tkn_tilde': '~'
+    'tkn_tilde': '~',
+    
+    'tkn_barra_piso': '_'
 
 }
 # Palabras reservadas en minúsculas
 
 palabras_reservadas = {
 
-    'object', 'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
+    'range','object', 'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
 
     'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global',
 
@@ -161,13 +163,6 @@ def analizar_lexico(codigo):
                 continue
 
             if char.isspace() or char in tokens.values():
-                if char in tokens.values():
-                    for token, value in tokens.items():
-                        if columna >= len(value) and linea[columna-len(value):columna] == value:
-                            print(f"<{token}, {fila}, {columna-len(value)+1}>")
-                            palabra = ''
-                            break
-
                 if palabra:
                     if palabra in palabras_reservadas:
                         print(f"<{palabra}, {fila}, {columna - len(palabra)}>")
@@ -181,7 +176,14 @@ def analizar_lexico(codigo):
                     else:
                         print(
                             f">>>Error lexico(Fila:{fila},Columna:{columna - len(palabra)})")
+                        return
                     palabra = ''
+                if char in tokens.values():
+                    for token, value in tokens.items():
+                        if columna >= len(value) and linea[columna-len(value):columna] == value:
+                            print(f"<{token}, {fila}, {columna-len(value)+1}>")
+                            palabra = ''
+                            break
 
             elif char == '"' or char == "'":
                 palabra += char
