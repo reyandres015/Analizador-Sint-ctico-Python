@@ -1,7 +1,7 @@
 # Definir los tokens y palabras reservadas
 tokens = {
     'tkn_ejecuta': '->',
-    'tkn_potencia': '**',
+    'tkn_potencia': '',
     'tkn_mayor_igual': '>=',
     'tkn_menor_igual': '<=',
     'tkn_igual': '==',
@@ -49,7 +49,7 @@ palabras_reservadas = {
     'range', 'object', 'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
     'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global',
     'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'print', 'raise', 'return',
-    'try', 'self', 'while', 'with', 'yield', '_init_'
+    'try', 'self', 'while', 'with', 'yield', 'init'
 }
 
 # Tipos de datos
@@ -59,9 +59,6 @@ tipos_datos = {
     'str': 'str',
     'bool': 'bool'
 }
-
-# Contador de filas
-fila = 1
 
 def es_identificador(cadena):
     if not cadena:
@@ -129,12 +126,12 @@ def analizar_lexico(codigo):
 
             if es_identificador(char):
                 inicio_numero = columna - 1
-                while columna < len(linea) and (es_identificador(linea[columna])):
+                while columna < len(linea) and (es_identificador(linea[columna])): #Identificar longitud cadena
                     columna += 1
-                if linea[inicio_numero:columna] in palabras_reservadas:
+                if linea[inicio_numero:columna] in palabras_reservadas: #palabra reservada
                     print(f"<{linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
 
-                elif linea[inicio_numero:columna] in tipos_datos:
+                elif linea[inicio_numero:columna] in tipos_datos: 
                     print(
                         f"<tipo_dato, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
                 else:
@@ -143,6 +140,7 @@ def analizar_lexico(codigo):
                 continue
 
             if char.isspace() or char in tokens.values():
+                #Condicional :(
                 if palabra:
                     if palabra in palabras_reservadas:
                         print(f"<{palabra}, {fila}, {columna - len(palabra)}>")
@@ -176,27 +174,6 @@ def analizar_lexico(codigo):
 
             else:
                 palabra += char
-
-            if palabra in ['False', 'True', 'None']:
-                ultima_columna = columna
-
-        if palabra:
-            if palabra in palabras_reservadas:
-                print(f"<{palabra}, {fila}, {ultima_columna-len(palabra)}>")
-
-            elif palabra in tipos_datos:
-                print(f"<tipo_dato, {palabra}, {fila}, {ultima_columna}>")
-
-            elif es_identificador(palabra):
-                print(f"<id, {palabra}, {fila}, {columna - len(palabra)}>")
-            else:
-                try:
-                    # Intentamos convertir la palabra en un número entero
-                    numero_entero = int(palabra)
-                    print(f"<numero_entero, {palabra}, {fila}, {columna - len(palabra)}>")
-                except ValueError:
-                    print(f">>>Error léxico(Fila:{fila},Columna:{columna - len(palabra)})")
-                    return
 
 # Cargar el código desde un archivo
 with open('codigo.py', 'r', encoding='utf-8') as file:
