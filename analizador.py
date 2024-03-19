@@ -26,16 +26,14 @@ tokens = {
     'tkn_mult_asig': '*=',
 
     'tkn_div_asig': '/=',
+    
+    'tkn_div_entera' : '//',
 
     'tkn_mod_asig': '%=',
 
     'tkn_menor_menor': '<<',
 
     'tkn_mayor_mayor': '>>',
-
-    'tkn_mas_mas': '++',
-
-    'tkn_menos_menos': '--',
 
     'tkn_punto_y_coma': ';',
 
@@ -77,15 +75,17 @@ tokens = {
 
     'tkn_comentario': '#',
 
-    'tkn_dolar': '$',
-
     'tkn_ampersand': '&',
 
     'tkn_interrogacion': '?',
 
     'tkn_tilde': '~',
     
-    'tkn_barra_piso': '_'
+    'tkn_barra_piso': '_',
+    
+    'numeros' : '0123456789',
+    
+    'tkn_exclamacion':'!'
 
 }
 # Palabras reservadas en minúsculas
@@ -109,19 +109,19 @@ tipos_datos = {
     'bool': 'bool'
 }
 
-# Tabla de símbolos
-tabla_simbolos = {}
-
 # Contador de filas
 fila = 1
 
 
-def contiene_solo_letras(cadena):
+def es_identificador(cadena):
+    if not cadena:
+        return False  # La cadena no puede estar vacía
+    if cadena[0].isdigit():
+        return False  # El identificador no puede comenzar con un dígito
     for char in cadena:
-        if char.isalpha() or char.isalnum():
-            return True
-        else:
-            return False
+        if not char.isalnum() and char != '_':
+            return False  # Los caracteres permitidos son letras, números y guiones bajos
+    return True
 
 
 def analizar_lexico(codigo):
@@ -131,6 +131,7 @@ def analizar_lexico(codigo):
     comentario = False
     dentro_cadena = False
     ultima_columna = 0
+    
     lineas = codigo.split('\n')
 
     for linea in lineas:
@@ -145,7 +146,7 @@ def analizar_lexico(codigo):
             else:
                 columna += 1
 
-            if comentario:
+            if comentario: # Estado (comentario)
                 continue
 
             if dentro_cadena:
@@ -161,7 +162,32 @@ def analizar_lexico(codigo):
             if char == '#':
                 comentario = True
                 continue
+            
+            # if palabra[:-1].isalnum() and palabra[-1].isalpha():
+            #     print(f"<numero_entero, {palabra[:-1]}, {fila}, {columna - len(palabra)}>")
+            #     palabra = palabra[-1]
+                
+            if char.isdigit():
+                inicio_numero = columna - 1
+                while columna < len(linea) and (linea[columna].isdigit()):
+                    columna += 1
+                print(f"<tk_entero, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
+                continue
+            
+            if es_identificador(char):
+                inicio_numero = columna - 1
+                while columna < len(linea) and (es_identificador(linea[columna])):
+                    columna += 1
+                if linea[inicio_numero:columna] in palabras_reservadas:
+                        print(f"<{linea[inicio_numero:columna]}, {fila}, {columna - len(palabra)}>")
 
+                elif linea[inicio_numero:columna] in tipos_datos:
+                    print(
+                        f"<tipo_dato, {linea[inicio_numero:columna]}, {fila}, {columna - len(palabra)}>")
+                else:
+                    print(f"<id, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
+                continue
+            
             if char.isspace() or char in tokens.values():
                 if palabra:
                     if palabra in palabras_reservadas:
@@ -170,13 +196,18 @@ def analizar_lexico(codigo):
                     elif palabra in tipos_datos:
                         print(
                             f"<tipo_dato, {palabra}, {fila}, {columna - len(palabra)}>")
-                    elif contiene_solo_letras(palabra):
+                    elif es_identificador(palabra):
                         print(
                             f"<id, {palabra}, {fila}, {columna - len(palabra)}>")
                     else:
-                        print(
-                            f">>>Error lexico(Fila:{fila},Columna:{columna - len(palabra)})")
-                        return
+                        try:
+                            # Intentamos convertir la palabra en un número entero
+                            numero_entero = int(palabra)
+                            print(f"<numero_entero, {palabra}, {fila}, {columna - len(palabra)}>")
+                        except ValueError:
+                            print(
+                                f">>>Error lexico(Fila:{fila},Columna:{columna - len(palabra)})")
+                            # return
                     palabra = ''
                 if char in tokens.values():
                     for token, value in tokens.items():
