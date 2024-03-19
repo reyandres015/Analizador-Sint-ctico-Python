@@ -83,8 +83,6 @@ tokens = {
 
     'tkn_interrogacion': '?',
 
-    'tkn_exclamacion': '!',
-
     'tkn_tilde': '~'
 
 }
@@ -115,6 +113,13 @@ tabla_simbolos = {}
 # Contador de filas
 fila = 1
 
+def contiene_solo_letras(cadena):
+    for char in cadena:
+        if char.isalpha() or char.isalnum():
+            return True
+        else:
+            return False
+
 def analizar_lexico(codigo):
     fila = 0
     columna = 0
@@ -142,7 +147,7 @@ def analizar_lexico(codigo):
             if dentro_cadena:
                 palabra += char
 
-                if char == '"':
+                if char == '"' or char =="'":
                     print(f"<tkn_cadena, {palabra}, {fila}, {(columna-len(palabra))+1}>")
                     palabra = ''
                     dentro_cadena = False
@@ -161,7 +166,10 @@ def analizar_lexico(codigo):
                     elif palabra in tipos_datos:
                         print(f"<tipo_dato, {palabra}, {fila}, {columna - len(palabra)}>")
                     else:
-                        print(f"<id, {palabra}, {fila}, {columna - len(palabra)}>")
+                        if contiene_solo_letras(palabra):
+                            print(f"<id, {palabra}, {fila}, {columna - len(palabra)}>")
+                        else:
+                            print(f">>>Error lexico(Fila:{fila},Columna:{columna - len(palabra)})")
                     palabra = ''
 
                 if char in tokens.values():
@@ -172,7 +180,7 @@ def analizar_lexico(codigo):
                             break
 
 
-            elif char == '"':
+            elif char == '"' or char == "'":
                 palabra += char
                 dentro_cadena = True
 
@@ -190,7 +198,7 @@ def analizar_lexico(codigo):
                 print(f"<tipo_dato, {palabra}, {fila}, {ultima_columna}>")
 
             else:
-                print(f"<d, {palabra}, {fila}, {ultima_columna}>")
+                print(f"<id, {palabra}, {fila}, {ultima_columna}>")
 
 # Cargar el código desde un archivo
 with open('codigo.py', 'r', encoding='utf-8') as file:
