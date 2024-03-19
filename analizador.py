@@ -90,13 +90,13 @@ tokens = {
 
 palabras_reservadas = {
 
-    'object', 'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'bool', 'break',
+    'object', 'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
 
-    'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from','global',
+    'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global',
 
-    'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'print', 'raise','return',
+    'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'print', 'raise', 'return',
 
-    'try', 'self', 'while', 'with', 'yield', '_init_', 'str'
+    'try', 'self', 'while', 'with', 'yield', '_init_'
 }
 
 # Tipos de datos
@@ -113,12 +113,14 @@ tabla_simbolos = {}
 # Contador de filas
 fila = 1
 
+
 def contiene_solo_letras(cadena):
     for char in cadena:
         if char.isalpha() or char.isalnum():
             return True
         else:
             return False
+
 
 def analizar_lexico(codigo):
     fila = 0
@@ -147,8 +149,9 @@ def analizar_lexico(codigo):
             if dentro_cadena:
                 palabra += char
 
-                if char == '"' or char =="'":
-                    print(f"<tkn_cadena, {palabra}, {fila}, {(columna-len(palabra))+1}>")
+                if char == '"' or char == "'":
+                    print(
+                        f"<tkn_cadena, {palabra}, {fila}, {(columna-len(palabra))+1}>")
                     palabra = ''
                     dentro_cadena = False
                 continue
@@ -158,20 +161,6 @@ def analizar_lexico(codigo):
                 continue
 
             if char.isspace() or char in tokens.values():
-                if palabra:
-                    if palabra in palabras_reservadas:
-                        print(f"<{palabra}, {fila}, {columna - len(palabra)}>")
-                        # if palabra not in ['False', 'True', 'None']:
-
-                    elif palabra in tipos_datos:
-                        print(f"<tipo_dato, {palabra}, {fila}, {columna - len(palabra)}>")
-                    else:
-                        if contiene_solo_letras(palabra):
-                            print(f"<id, {palabra}, {fila}, {columna - len(palabra)}>")
-                        else:
-                            print(f">>>Error lexico(Fila:{fila},Columna:{columna - len(palabra)})")
-                    palabra = ''
-
                 if char in tokens.values():
                     for token, value in tokens.items():
                         if columna >= len(value) and linea[columna-len(value):columna] == value:
@@ -179,6 +168,20 @@ def analizar_lexico(codigo):
                             palabra = ''
                             break
 
+                if palabra:
+                    if palabra in palabras_reservadas:
+                        print(f"<{palabra}, {fila}, {columna - len(palabra)}>")
+
+                    elif palabra in tipos_datos:
+                        print(
+                            f"<tipo_dato, {palabra}, {fila}, {columna - len(palabra)}>")
+                    elif contiene_solo_letras(palabra):
+                        print(
+                            f"<id, {palabra}, {fila}, {columna - len(palabra)}>")
+                    else:
+                        print(
+                            f">>>Error lexico(Fila:{fila},Columna:{columna - len(palabra)})")
+                    palabra = ''
 
             elif char == '"' or char == "'":
                 palabra += char
@@ -199,6 +202,7 @@ def analizar_lexico(codigo):
 
             else:
                 print(f"<id, {palabra}, {fila}, {ultima_columna}>")
+
 
 # Cargar el código desde un archivo
 with open('codigo.py', 'r', encoding='utf-8') as file:
