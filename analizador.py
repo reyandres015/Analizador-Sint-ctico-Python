@@ -84,33 +84,36 @@ def analizar_lexico(codigo):
     for linea in lineas:
         fila += 1
         columna = 0
+        blanco = 0
         comentario = False
         palabra = ''
+        tokensLinea = []
 
         while columna < len(linea):
-            tokensLinea = []
             char = linea[columna]
-            if char == '\t':
-                tokensIdentificados.append(["tkn_tab",fila,columna+1])
-                columna += 4
-            else:
-                columna += 1
+            columna += 1
+            
+            if(blanco == 4):
+                tokensLinea.append(["tkn_tab",fila,columna - 4])
+                blanco = 0
+                
 
             if comentario:  # Estado (comentario)
                 continue
 
             if dentro_cadena:
+                blanco = 0
                 palabra += char
 
                 if char == '"' or char == "'":
-                    tokensIdentificados.append(["tkn_cadena",fila,(columna-len(palabra))+1])
-                    print(
-                        f"<tkn_cadena, {palabra}, {fila}, {(columna-len(palabra))+1}>")
+                    tokensLinea.append(["tkn_cadena",fila,(columna-len(palabra))+1])
+                    print(f"<tkn_cadena, {palabra}, {fila}, {(columna-len(palabra))+1}>")
                     palabra = ''
                     dentro_cadena = False
                 continue
 
             if char == '#':
+                blanco = 0
                 comentario = True
                 continue
 
@@ -118,34 +121,32 @@ def analizar_lexico(codigo):
             if char not in tokens.values() and char not in palabras_reservadas and not char.isalnum() and char != '_' and char!=' ' and char!='"':
                 print(f">>>Error léxico: Símbolo no definido '{char}' en la fila {fila}, columna {columna}")
                 return
-                continue
 
             if char.isdigit():
+                blanco = 0
                 inicio_numero = columna - 1
                 while columna < len(linea) and (linea[columna].isdigit()):
                     columna += 1
                     
-                tokensIdentificados.append(["tk_entero",fila,inicio_numero + 1])
+                tokensLinea.append(["tk_entero",fila,inicio_numero + 1])
                 print(f"<tk_entero, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
                 palabra = ''
                 continue
 
             if es_identificador(char):
+                blanco = 0
                 inicio_numero = columna - 1
                 while columna < len(linea) and (es_identificador(linea[columna])): #Identificar longitud cadena
                     columna += 1
                 if linea[inicio_numero:columna] in palabras_reservadas: #palabra reservada
-                    tokensIdentificados.append([linea[inicio_numero:columna],fila,inicio_numero + 1])
-                
+                    tokensLinea.append([linea[inicio_numero:columna],fila,inicio_numero + 1])
                     print(f"<{linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
 
                 elif linea[inicio_numero:columna] in tipos_datos: 
-                    tokensIdentificados.append(["tipo_dato",fila,inicio_numero + 1])
-
-                    print(
-                        f"<tipo_dato, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
+                    tokensLinea.append(["tipo_dato",fila,inicio_numero + 1])
+                    print(f"<tipo_dato, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
                 else:
-                    tokensIdentificados.append(["id",fila,inicio_numero + 1])
+                    tokensLinea.append(["id",fila,inicio_numero + 1])
                     print(f"<id, {linea[inicio_numero:columna]}, {fila}, {inicio_numero + 1}>")
                 palabra = ''
                 continue
@@ -153,36 +154,36 @@ def analizar_lexico(codigo):
             if char.isspace() or char in tokens.values():
                 #Condicional :(
                 if palabra:
+                    blanco = 0
                     if palabra in palabras_reservadas:
-                        tokensIdentificados.append([palabra,fila,columna - len(palabra)])
-                        
+                        tokensLinea.append([palabra,fila,columna - len(palabra)])
                         print(f"<{palabra}, {fila}, {columna - len(palabra)}>")
 
                     elif palabra in tipos_datos:
-                        tokensIdentificados.append(["tipo_dato",fila,columna - len(palabra)])
-                        print(
-                            f"<tipo_dato, {palabra}, {fila}, {columna - len(palabra)}>")
-                    elif es_identificador(palabra):
-                        tokensIdentificados.append(["id",fila,columna - len(palabra)])
+                        tokensLinea.append(["tipo_dato",fila,columna - len(palabra)])
+                        print(f"<tipo_dato, {palabra}, {fila}, {columna - len(palabra)}>")
                         
-                        print(
-                            f"<id, {palabra}, {fila}, {columna - len(palabra)}>")
+                    elif es_identificador(palabra):
+                        tokensLinea.append(["id",fila,columna - len(palabra)])
+                        print(f"<id, {palabra}, {fila}, {columna - len(palabra)}>")
+
                     else:
                         try:
                             # Intentamos convertir la palabra en un número entero
                             numero_entero = int(palabra)
-                            tokensIdentificados.append(["numero_entero",fila,columna - len(palabra)])
-                            
+                            tokensLinea.append(["numero_entero",fila,columna - len(palabra)])
                             print(f"<numero_entero, {palabra}, {fila}, {columna - len(palabra)}>")
                         except ValueError:
-                            print(
-                                f">>>Error léxico(Fila:{fila},Columna:{columna - len(palabra)})")
+                            print(f">>>Error léxico(Fila:{fila},Columna:{columna - len(palabra)})")
                             return
                     palabra = ''
+                else:
+                    blanco += 1
+
                 if char in tokens.values():
                     for token, value in tokens.items():
                         if columna >= len(value) and linea[columna-len(value):columna] == value:
-                            tokensIdentificados.append([token,fila,columna-len(value)+1])
+                            tokensLinea.append([token,fila,columna-len(value)+1])
                             
                             print(f"<{token}, {fila}, {columna-len(value)+1}>")
                             palabra = ''
@@ -194,11 +195,8 @@ def analizar_lexico(codigo):
 
             else:
                 palabra += char
+        tokensIdentificados.append(tokensLinea)
 
-            if columna == len(linea):
-                tokensIdentificados.append(["tkn_salto",fila,columna+1])
-    print(tokensIdentificados)
-    
 # Analizador sintactico
 def esFuncion(linea):
     print(linea)
@@ -223,3 +221,4 @@ with open('codigo.py', 'r', encoding='utf-8') as file:
 
 # Realizar el análisis léxico
 analizar_lexico(input_text)
+print(tokensIdentificados)
