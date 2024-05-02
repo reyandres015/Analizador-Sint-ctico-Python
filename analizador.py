@@ -339,10 +339,20 @@ def esId(linea):
     print(f'<{linea[n+1][1]},{linea[n+1][2]}>Error sintactico: se encontro un simbolo inesperado: "{linea[n+1][0]}"')
     return False
 
+def esImport(linea):
+    n=0
+    if linea[n][0] == 'import':
+        n+=1
+        if linea[n][0] == 'id':
+            if n == len(linea) - 1:
+                return True
+    print(f'<{linea[n+1][1]},{linea[n+1][2]}>Error sintactico: se encontro un simbolo inesperado: "{linea[n+1][0]}"')
+    return False
+
 grammar ={
     'def': esFuncion,
     'if' : esCondicional,
-    'id' : esId
+    'id' : esId,
     'import': esImport,
 }
 
@@ -356,6 +366,8 @@ def analizadorSintactico():
     for filas in tokensIdentificados:
         filas = [token for token in filas if token[0] != 'tkn_tab'] #eliminar tkn_tab!!!!!!!!
         print(filas)
+        if len(filas) == 0:
+            continue
         if not identificar_estructura(filas):
             print("Error en el analisis sintactico.")
             return
