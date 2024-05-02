@@ -1,4 +1,3 @@
-def sumar(x,y) -> int:
-    return "False$%#$%TG%$GT$"
-
-sumar(1.2,2)
+def sumar(x,y):
+    def restar(x,y):
+        x = x + y + 1
