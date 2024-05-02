@@ -17,7 +17,7 @@ tokens = {
 palabras_reservadas = {
     'range', 'object', 'False', 'None', 'True', 'and', 'or','not', 'as', 'assert', 'async', 'await', 'break',
     'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global',
-    'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'pass', 'print', 'raise', 'return',
+    'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'pass', 'raise', 'return',
     'try', 'self', 'while', 'with', 'yield', 'init','->','>=','<=','==','!=','+=','-=', '*=', '/=','//','%=', '<<', '>>','=',
     '/','+','-','*','%','>','<','@','&','?','~','_','!'
 }
@@ -308,9 +308,42 @@ def esCondicional(linea):
         return func(linea) # ejecutar la función que corresponda
     return False
 
+def esId(linea):
+    n=0
+    if linea[n][0] == 'id':
+        n+=1
+        if linea[n][0] == '=': #Asignación
+            n+=1
+            if linea[n][0] == 'id' or linea[n][0] == 'tk_entero' or linea[n][0] == 'tkn_cadena':
+                if n == len(linea) - 1:
+                    return True
+        else:
+            if linea[n][0] == 'tkn_par_izq':
+                n+=1
+                while linea[n][0] != 'tkn_par_der':
+                    if linea[n][0] == 'id' or linea[n][0] == 'tk_entero' or linea[n][0] == 'tkn_cadena':
+                        n+=1
+                        if linea[n][0] == 'tkn_coma':
+                            n+=1
+                        elif linea[n][0] == 'tkn_par_der':
+                            if n == len(linea) - 1:
+                                return True
+                        else:
+                            print(f'<{linea[n][1]},{linea[n][2]}>Error sintactico: se encontro un simbolo inesperado: "{linea[n][0]}"')
+                            return False
+                    else:
+                        print(f'<{linea[n][1]},{linea[n][2]}>Error sintactico: se encontro un simbolo inesperado: "{linea[n][0]}"')
+                        return False
+        if n == len(linea) - 1:
+            return True
+    print(f'<{linea[n+1][1]},{linea[n+1][2]}>Error sintactico: se encontro un simbolo inesperado: "{linea[n+1][0]}"')
+    return False
+
 grammar ={
     'def': esFuncion,
-    'if' : esCondicional
+    'if' : esCondicional,
+    'id' : esId
+    'import': esImport,
 }
 
 def identificar_estructura(linea):
