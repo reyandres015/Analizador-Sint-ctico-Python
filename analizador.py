@@ -314,9 +314,23 @@ def esId(linea):
         n+=1
         if linea[n][0] == '=': #Asignación
             n+=1
-            if linea[n][0] == 'id' or linea[n][0] == 'tk_entero' or linea[n][0] == 'tkn_cadena':
+            if linea[n][0] == 'tk_corchete_izq':  # '['
+                n += 1
+                while linea[n][0] != 'tk_corchete_der':
+                    if linea[n][0] == 'id' or linea[n][0] == 'tk_entero':  # Puede ser cualquier identificador
+                        n += 1
+                        if linea[n][0] == 'tkn_coma':
+                            n += 1
+                            if linea[n][0] == 'id' or linea[n][0] == 'tk_entero':
+                                n+=1
+                        else:
+                            n+=1
                 if n == len(linea) - 1:
                     return True
+            else:
+                if linea[n][0] == 'id' or linea[n][0] == 'tk_entero' or linea[n][0] == 'tkn_cadena':
+                    if n == len(linea) - 1:
+                        return True
         else:
             if linea[n][0] == 'tkn_par_izq':
                 n+=1
