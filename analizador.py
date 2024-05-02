@@ -92,11 +92,10 @@ def analizar_lexico(codigo):
         while columna < len(linea):
             char = linea[columna]
             columna += 1
-            
+
             if(blanco == 4):
                 tokensLinea.append(["tkn_tab",fila,columna - 4])
                 blanco = 0
-                
 
             if comentario:  # Estado (comentario)
                 continue
@@ -199,20 +198,50 @@ def analizar_lexico(codigo):
 
 # Analizador sintactico
 def esFuncion(linea):
-    print(linea)
+    structure = ['def','id','tkn_par_izq','id','tkn_coma','tkn_par_der', 'tkn_dos_puntos']
+    token = linea[0]
+    tkn_name = token[0]
+    if(tkn_name == structure[0]): #def
+        token = linea[1]
+        tkn_name = token[0]
+        if(tkn_name == structure[1]): #id
+            token = linea[2]
+            tkn_name = token[0]
+            if(tkn_name == structure[2]): #(
+                n = 3
+                while linea[n][0] != structure[5]: #recorrer parametros hasta encontrar ')'
+                    if linea[n][0] != linea[n+1][0]: #comprobar que no sea el mismo tipo de token
+                        if linea[n][0] == structure[3] or linea[n][0] == structure[4]: #debe ser un id o una coma
+                            token = linea[n]
+                            tkn_name = token[0]
+                        else:
+                            return False
+                    else:
+                        return False
+                    n += 1
+                # n = 6 posicion de ')'
+                if ((n - 3) % 2) != 0: #impar
+                    token = linea[n + 1]
+                    tkn_name = token[0]
+                    if tkn_name == structure[6]: #:
+                        return True
+    return False
+
 grammar ={
     'def': esFuncion,
 }
 
-def identificar_estructura(token,linea):
-    func = grammar[token]
-    if grammar[token]:
-        func(linea)
+def identificar_estructura(linea):
+    if grammar[linea[0][0]]: #comprobar si el primer tkn es una estructura definina en grammar
+        func = grammar[linea[0][0]]
+        return func(linea) # ejecutar la función que corresponda
         
 
 def analizadorSintactico():
-    for token in tokensIdentificados:
-        identificar_estructura(token[0],token[1])
+    if identificar_estructura(tokensIdentificados[0]):
+        print("El analisis sintactico ha finalizado exitosamente.")
+    else:
+        print("Error en el analisis sintactico.")
 
 
 # Cargar el código desde un archivo
@@ -220,5 +249,10 @@ with open('codigo.py', 'r', encoding='utf-8') as file:
     input_text = file.read()
 
 # Realizar el análisis léxico
+print('Análisis léxico:')
 analizar_lexico(input_text)
-print(tokensIdentificados)
+print('Análisis léxico completado.')
+print('Análisis Sintactico.')
+# print(tokensIdentificados)
+analizadorSintactico()
+print('Análisis Sintactico completado.')
