@@ -1,21 +1,8 @@
 # Definir los tokens y palabras reservadas
 tokens = {
-    'tkn_ejecuta': '->',
-    'tkn_mayor_igual': '>=',
-    'tkn_menor_igual': '<=',
-    'tkn_igual': '==',
-    'tkn_distinto': '!=',
     'tkn_and': 'and',
     'tkn_or': 'or',
     'tkn_not': 'not',
-    'tkn_mas_asig': '+=',
-    'tkn_menos_asig': '-=',
-    'tkn_mult_asig': '*=',
-    'tkn_div_asig': '/=',
-    'tkn_div_entera': '//',
-    'tkn_mod_asig': '%=',
-    'tkn_menor_menor': '<<',
-    'tkn_mayor_mayor': '>>',
     'tkn_punto_y_coma': ';',
     'tkn_coma': ',',
     'tkn_par_izq': '(',
@@ -26,20 +13,6 @@ tokens = {
     'tkn_llave_der': '}',
     'tkn_dos_puntos': ':',
     'tkn_punto': '.',
-    'tkn_asig': '=',
-    'tkn_div': '/',
-    'tkn_suma': '+',
-    'tkn_resta': '-',
-    'tkn_mult': '*',
-    'tkn_modulo': '%',
-    'tkn_mayor': '>',
-    'tkn_menor': '<',
-    'tkn_arroba': '@',
-    'tkn_comentario': '#',
-    'tkn_ampersand': '&',
-    'tkn_interrogacion': '?',
-    'tkn_tilde': '~',
-    'tkn_barra_piso': '_',
     'tkn_exclamacion': '!'
 }
 
@@ -48,7 +21,8 @@ palabras_reservadas = {
     'range', 'object', 'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
     'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global',
     'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'print', 'raise', 'return',
-    'try', 'self', 'while', 'with', 'yield', 'init'
+    'try', 'self', 'while', 'with', 'yield', 'init','->','>=','<=','==','!=','+=','-=', '*=', '/=','//','%=', '<<', '>>','=',
+    '/','+','-','*','%','>','<','@','&','?','~','_','!'
 }
 
 # Tipos de datos
@@ -65,6 +39,8 @@ def es_identificador(cadena):
     if cadena[0].isdigit():
         return False  # El identificador no puede comenzar con un dígito
     for char in cadena:
+        if char in palabras_reservadas:
+            return True
         if not char.isalnum() and char != '_':
             return False  # Los caracteres permitidos son letras, números y guiones bajos
     return True
@@ -210,13 +186,17 @@ def esFuncion(linea):
             if(tkn_name == structure[2]): #(
                 n = 3
                 while linea[n][0] != structure[5]: #recorrer parametros hasta encontrar ')'
-                    if linea[n][0] != linea[n+1][0]: #comprobar que no sea el mismo tipo de token
-                        if linea[n][0] == structure[3] or linea[n][0] == structure[4]: #debe ser un id o una coma
-                            token = linea[n]
-                            tkn_name = token[0]
-                        else:
-                            return False
+                    if linea[n][0] == structure[4] and linea[n+1][0] == structure[3]: #debe ser un id seguido de una coma
+                        token = linea[n]
+                        tkn_name = token[0]
+                    elif  linea[n+1][0] == structure[5]: #el siguiente token ya es ')'
+                        n += 1
+                        continue                        
+                    elif linea[n][0] == structure[3] and linea[n+1][0] == structure[4]: #debe ser una coma seguida de un id
+                        token = linea[n]
+                        tkn_name = token[0]
                     else:
+                        print(f'<{linea[n][1]},{linea[n][2]}>Error sintactico: se encontro "{linea[n+1][0]}" se esperaba {"," if linea[n][0] == structure[3] else "parameter name or )"}')
                         return False
                     n += 1
                 # n = 6 posicion de ')'
@@ -227,8 +207,108 @@ def esFuncion(linea):
                         return True
     return False
 
+#Condicional IF-----------------------------------------------------------------------------
+
+def operacionesCondiciones(linea):
+    condicionalOperator = ['in','and','or','is','>=','<=','==','!=','tkn_and','tkn_or','tkn_not']
+    factors = ['id','tk_entero']
+    operators = ['tkn_div','tkn_suma','tkn_resta','tkn_mult','tkn_modulo']
+    expression = [factors,operators,factors]
+    
+    structureOperacionesCondiciones = ['if',expression,condicionalOperator,expression,'tkn_dos_puntos'] #plantilla
+    structureCondiciones = ['if',factors,condicionalOperator,factors,'tkn_dos_puntos'] #plantilla
+    
+    
+    n=0
+    if linea[n][0] == structureOperacionesCondiciones[0]: #if
+        n+=1
+        if linea[n][0] in structureOperacionesCondiciones[1][0]: # ES ID o ENTERO
+            n+=1
+            if linea[n][0] in structureOperacionesCondiciones[1][1]: # ES OPERADOR
+                n+=1
+                if linea[n][0] in structureOperacionesCondiciones[1][2]: # ES ID o ENTERO
+                    n+=1
+                    if linea[n][0] in structureOperacionesCondiciones[2]: # es condicional operator
+                        n+=1
+                        if linea[n][0] in structureOperacionesCondiciones[1][0]: # ES ID o ENTERO
+                            n+=1
+                            if linea[n][0] in structureOperacionesCondiciones[1][1]: # ES OPERADOR
+                                n+=1
+                                if linea[n][0] in structureOperacionesCondiciones[1][2]: # ES ID o ENTERO
+                                    n+=1
+                                    if linea[n][0] == structureOperacionesCondiciones[4]: # ES ':'
+                                        #si es el final de la linea
+                                        if n == len(linea) - 1:
+                                            return True
+                            else:
+                                if linea[n][0] == structureOperacionesCondiciones[4]: # ES ':'
+                                    if n == len(linea) - 1:
+                                        return True
+            else: #structureCondiciones
+                if linea[n][0] in structureOperacionesCondiciones[2]:# es condicional operator
+                    n+=1
+                    if linea[n][0] in structureOperacionesCondiciones[1][0]: # ES ID o Entero
+                        n+=1
+                        if linea[n][0] == structureOperacionesCondiciones[4]: # ES ':'
+                            if n == len(linea) - 1:
+                                return True
+                else: # condicional con solo una variable.
+                    
+                    if linea[n][0] == structureOperacionesCondiciones[4]: # ES ':'
+                        if n == len(linea) - 1:
+                            return True
+                    
+    print(f'<{linea[n][1]},{linea[n][2]}>Error sintactico: se encontro un simbolo inesperado: "{linea[n][0]}"')
+    return False
+
+def basicStructure(filas):
+    palabras_reservadas_aceptadas = ['True','False','None']
+    
+    basicStructure = ['if',palabras_reservadas_aceptadas,'tkn_dos_puntos']
+    
+    n = 0
+    if filas[n][0] == basicStructure[0]: #if
+        n+=1
+        if filas[n][0] in basicStructure[1]: # palabras reservas
+            n+=1
+            if filas[n][0] == basicStructure[2]:
+                return True
+    return False
+
+def negationStructure(lines):
+    negationStructure = ['if','tkn_not','id','tkn_dos_puntos']
+
+    n=0
+    if lines[n][0] == negationStructure[0]: #if
+        n+=1
+        if lines[n][0] == negationStructure[1]: #not
+            n+=1
+            if lines[n][0] == negationStructure[2]: #id
+                n+=1
+                if lines[n][0] == negationStructure[3]:
+                    return True
+    return False
+
+condicionales ={
+    'id': operacionesCondiciones,
+    'tk_entero': operacionesCondiciones,
+    'True': basicStructure,
+    'False': basicStructure,
+    'None': basicStructure,
+    'tkn_not': negationStructure
+    
+}
+
+def esCondicional(linea):    
+    if condicionales[linea[1][0]]: 
+        func = condicionales[linea[1][0]]
+        return func(linea) # ejecutar la función que corresponda
+    
+    return False
+
 grammar ={
     'def': esFuncion,
+    'if' : esCondicional
 }
 
 def identificar_estructura(linea):
@@ -238,10 +318,13 @@ def identificar_estructura(linea):
         
 
 def analizadorSintactico():
-    if identificar_estructura(tokensIdentificados[0]):
-        print("El analisis sintactico ha finalizado exitosamente.")
-    else:
-        print("Error en el analisis sintactico.")
+    for filas in tokensIdentificados:
+        filas = [token for token in filas if token[0] != 'tkn_tab'] #eliminar tkn_tab!!!!!!!!
+        print(filas)
+        if not identificar_estructura(filas):
+            print("Error en el analisis sintactico.")
+            return
+    print("El analisis sintactico ha finalizado exitosamente.")
 
 
 # Cargar el código desde un archivo
@@ -249,10 +332,10 @@ with open('codigo.py', 'r', encoding='utf-8') as file:
     input_text = file.read()
 
 # Realizar el análisis léxico
-print('Análisis léxico:')
+print('Análisis léxico 🚩')
 analizar_lexico(input_text)
-print('Análisis léxico completado.')
-print('Análisis Sintactico.')
+print('Análisis léxico completado.\n')
+
+print('Análisis Sintactico 🚩')
 # print(tokensIdentificados)
 analizadorSintactico()
-print('Análisis Sintactico completado.')
