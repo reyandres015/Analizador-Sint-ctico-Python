@@ -1,8 +1,5 @@
 # Definir los tokens y palabras reservadas
 tokens = {
-    'tkn_and': 'and',
-    'tkn_or': 'or',
-    'tkn_not': 'not',
     'tkn_punto_y_coma': ';',
     'tkn_coma': ',',
     'tkn_par_izq': '(',
@@ -18,9 +15,9 @@ tokens = {
 
 # Palabras reservadas en minúsculas
 palabras_reservadas = {
-    'range', 'object', 'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
+    'range', 'object', 'False', 'None', 'True', 'and', 'or','not', 'as', 'assert', 'async', 'await', 'break',
     'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global',
-    'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'print', 'raise', 'return',
+    'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'pass', 'print', 'raise', 'return',
     'try', 'self', 'while', 'with', 'yield', 'init','->','>=','<=','==','!=','+=','-=', '*=', '/=','//','%=', '<<', '>>','=',
     '/','+','-','*','%','>','<','@','&','?','~','_','!'
 }
@@ -38,9 +35,12 @@ def es_identificador(cadena):
         return False  # La cadena no puede estar vacía
     if cadena[0].isdigit():
         return False  # El identificador no puede comenzar con un dígito
+    if cadena in tokens.values():
+        return False
+    if cadena in palabras_reservadas:
+        return True
     for char in cadena:
-        if char in palabras_reservadas:
-            return True
+        
         if not char.isalnum() and char != '_':
             return False  # Los caracteres permitidos son letras, números y guiones bajos
     return True
@@ -261,32 +261,35 @@ def operacionesCondiciones(linea):
     print(f'<{linea[n][1]},{linea[n][2]}>Error sintactico: se encontro un simbolo inesperado: "{linea[n][0]}"')
     return False
 
-def basicStructure(filas):
+def basicStructure(linea):
     palabras_reservadas_aceptadas = ['True','False','None']
     
     basicStructure = ['if',palabras_reservadas_aceptadas,'tkn_dos_puntos']
     
     n = 0
-    if filas[n][0] == basicStructure[0]: #if
+    if linea[n][0] == basicStructure[0]: #if
         n+=1
-        if filas[n][0] in basicStructure[1]: # palabras reservas
+        if linea[n][0] in basicStructure[1]: # palabras reservas
             n+=1
-            if filas[n][0] == basicStructure[2]:
-                return True
+            if linea[n][0] == basicStructure[2]:
+                if n == len(linea) - 1:
+                    return True
+    print(f'<{linea[n][1]},{linea[n][2]}>Error sintactico: se encontro un simbolo inesperado: "{linea[n][0]}"')
     return False
 
-def negationStructure(lines):
-    negationStructure = ['if','tkn_not','id','tkn_dos_puntos']
-
+def negationStructure(linea):
+    negationStructure = ['if','not','id','tkn_dos_puntos']
     n=0
-    if lines[n][0] == negationStructure[0]: #if
+    if linea[n][0] == negationStructure[0]: #if
         n+=1
-        if lines[n][0] == negationStructure[1]: #not
+        if linea[n][0] == negationStructure[1]: #not
             n+=1
-            if lines[n][0] == negationStructure[2]: #id
+            if linea[n][0] == negationStructure[2]: #id
                 n+=1
-                if lines[n][0] == negationStructure[3]:
-                    return True
+                if linea[n][0] == negationStructure[3]:
+                    if n == len(linea) - 1:
+                        return True
+    print(f'<{linea[n][1]},{linea[n][2]}>Error sintactico: se encontro un simbolo inesperado: "{linea[n][0]}"')
     return False
 
 condicionales ={
@@ -295,7 +298,7 @@ condicionales ={
     'True': basicStructure,
     'False': basicStructure,
     'None': basicStructure,
-    'tkn_not': negationStructure
+    'not': negationStructure
     
 }
 
@@ -303,7 +306,6 @@ def esCondicional(linea):
     if condicionales[linea[1][0]]: 
         func = condicionales[linea[1][0]]
         return func(linea) # ejecutar la función que corresponda
-    
     return False
 
 grammar ={

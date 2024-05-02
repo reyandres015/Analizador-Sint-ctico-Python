@@ -1,2 +1,3 @@
 def sumar(x,y):#funcion
-    if x<=y:
+    if not x:
+        print(x)
